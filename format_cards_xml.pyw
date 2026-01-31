@@ -90,7 +90,7 @@ COLOR_NAMES = {
     "G": "Green",
 }
 
-def card_sort_key(card: Card) -> tuple:
+def card_sort_key(card: Card) -> tuple[tuple[int, int], int, str]:
     # Lands last, then single colors in WUBRG order, then multicolor, then colorless
     if card.maintype == "Land":
         color_key = (3, 0)  # Lands
@@ -134,7 +134,7 @@ def format_cards_with_headers(cards: list[Card]) -> str:
 
     return "\n\n".join(sections)
 
-def run_cli():
+def run_cli() -> None:
     parser = argparse.ArgumentParser(description="Convert Cockatrice XML to plain text")
     parser.add_argument("input", help="Input XML file")
     parser.add_argument("-o", "--output", help="Output file (default: stdout)")
@@ -150,12 +150,12 @@ def run_cli():
     else:
         print(output)
 
-def run_gui():
+def run_gui() -> None:
     import tkinter as tk
     from tkinter import filedialog, messagebox
 
     class App:
-        def __init__(self, root: tk.Tk):
+        def __init__(self, root: tk.Tk) -> None:
             self.root = root
             self.root.title("Card XML Formatter")
 
@@ -189,7 +189,7 @@ def run_gui():
             self.status_label = tk.Label(root, text="")
             self.status_label.pack(pady=5)
 
-        def select_input(self):
+        def select_input(self) -> None:
             path = filedialog.askopenfilename(
                 title="Select Input XML",
                 filetypes=[("XML files", "*.xml"), ("All files", "*.*")]
@@ -198,7 +198,7 @@ def run_gui():
                 self.input_path = path
                 self.input_label.config(text=path)
 
-        def select_output(self):
+        def select_output(self) -> None:
             path = filedialog.asksaveasfilename(
                 title="Select Output File",
                 defaultextension=".txt",
@@ -208,7 +208,7 @@ def run_gui():
                 self.output_path = path
                 self.output_label.config(text=path)
 
-        def convert(self):
+        def convert(self) -> None:
             if not self.input_path:
                 messagebox.showerror("Error", "Please select an input file")
                 return
@@ -227,7 +227,7 @@ def run_gui():
             except Exception as e:
                 messagebox.showerror("Error", str(e))
 
-        def copy_to_clipboard(self):
+        def copy_to_clipboard(self) -> None:
             if not self.input_path:
                 messagebox.showerror("Error", "Please select an input file")
                 return

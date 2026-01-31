@@ -1,0 +1,11 @@
+[project]
+name = "format-cards-xml"
+version = "0.1.0"
+description = "Convert XML card databases to plain text"
+requires-python = ">=3.11"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
