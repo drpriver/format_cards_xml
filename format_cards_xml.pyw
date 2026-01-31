@@ -1,6 +1,5 @@
+import argparse
 import sys
-import tkinter as tk
-from tkinter import filedialog, messagebox
 import xml.etree.ElementTree as ET
 from typing import NamedTuple
 
@@ -134,98 +133,123 @@ def format_cards_with_headers(cards: list[Card]) -> str:
 
     return "\n\n".join(sections)
 
-class App:
-    def __init__(self, root: tk.Tk):
-        self.root = root
-        self.root.title("Card XML Formatter")
+def run_cli():
+    parser = argparse.ArgumentParser(description="Convert Cockatrice XML to plain text")
+    parser.add_argument("input", help="Input XML file")
+    parser.add_argument("-o", "--output", help="Output file (default: stdout)")
+    args = parser.parse_args()
 
-        self.input_path = ""
-        self.output_path = ""
+    cards = parse_cards(args.input)
+    output = format_cards_with_headers(cards)
 
-        # Input file selection
-        input_frame = tk.Frame(root)
-        input_frame.pack(fill=tk.X, padx=10, pady=5)
+    if args.output:
+        with open(args.output, "w", encoding="utf-8") as f:
+            f.write(output)
+            f.write("\n")
+    else:
+        print(output)
 
-        tk.Button(input_frame, text="Select Input XML", command=self.select_input).pack(side=tk.LEFT)
-        self.input_label = tk.Label(input_frame, text="No file selected", anchor="w")
-        self.input_label.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
+def run_gui():
+    import tkinter as tk
+    from tkinter import filedialog, messagebox
 
-        # Output file selection
-        output_frame = tk.Frame(root)
-        output_frame.pack(fill=tk.X, padx=10, pady=5)
+    class App:
+        def __init__(self, root: tk.Tk):
+            self.root = root
+            self.root.title("Card XML Formatter")
 
-        tk.Button(output_frame, text="Select Output File", command=self.select_output).pack(side=tk.LEFT)
-        self.output_label = tk.Label(output_frame, text="No file selected", anchor="w")
-        self.output_label.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
+            self.input_path = ""
+            self.output_path = ""
 
-        # Buttons
-        button_frame = tk.Frame(root)
-        button_frame.pack(pady=10)
+            # Input file selection
+            input_frame = tk.Frame(root)
+            input_frame.pack(fill=tk.X, padx=10, pady=5)
 
-        tk.Button(button_frame, text="Save to File", command=self.convert).pack(side=tk.LEFT, padx=5)
-        tk.Button(button_frame, text="Copy to Clipboard", command=self.copy_to_clipboard).pack(side=tk.LEFT, padx=5)
+            tk.Button(input_frame, text="Select Input XML", command=self.select_input).pack(side=tk.LEFT)
+            self.input_label = tk.Label(input_frame, text="No file selected", anchor="w")
+            self.input_label.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
 
-        # Status label
-        self.status_label = tk.Label(root, text="")
-        self.status_label.pack(pady=5)
+            # Output file selection
+            output_frame = tk.Frame(root)
+            output_frame.pack(fill=tk.X, padx=10, pady=5)
 
-    def select_input(self):
-        path = filedialog.askopenfilename(
-            title="Select Input XML",
-            filetypes=[("XML files", "*.xml"), ("All files", "*.*")]
-        )
-        if path:
-            self.input_path = path
-            self.input_label.config(text=path)
+            tk.Button(output_frame, text="Select Output File", command=self.select_output).pack(side=tk.LEFT)
+            self.output_label = tk.Label(output_frame, text="No file selected", anchor="w")
+            self.output_label.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
 
-    def select_output(self):
-        path = filedialog.asksaveasfilename(
-            title="Select Output File",
-            defaultextension=".txt",
-            filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
-        )
-        if path:
-            self.output_path = path
-            self.output_label.config(text=path)
+            # Buttons
+            button_frame = tk.Frame(root)
+            button_frame.pack(pady=10)
 
-    def convert(self):
-        if not self.input_path:
-            messagebox.showerror("Error", "Please select an input file")
-            return
-        if not self.output_path:
-            messagebox.showerror("Error", "Please select an output file")
-            return
+            tk.Button(button_frame, text="Save to File", command=self.convert).pack(side=tk.LEFT, padx=5)
+            tk.Button(button_frame, text="Copy to Clipboard", command=self.copy_to_clipboard).pack(side=tk.LEFT, padx=5)
 
-        try:
-            cards = parse_cards(self.input_path)
-            output = format_cards_with_headers(cards)
-            with open(self.output_path, "w", encoding="utf-8") as f:
-                f.write(output)
-                f.write("\n")
-            self.status_label.config(text=f"Converted {len(cards)} cards!")
-            messagebox.showinfo("Success", f"Converted {len(cards)} cards to {self.output_path}")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+            # Status label
+            self.status_label = tk.Label(root, text="")
+            self.status_label.pack(pady=5)
 
-    def copy_to_clipboard(self):
-        if not self.input_path:
-            messagebox.showerror("Error", "Please select an input file")
-            return
+        def select_input(self):
+            path = filedialog.askopenfilename(
+                title="Select Input XML",
+                filetypes=[("XML files", "*.xml"), ("All files", "*.*")]
+            )
+            if path:
+                self.input_path = path
+                self.input_label.config(text=path)
 
-        try:
-            cards = parse_cards(self.input_path)
-            output = format_cards_with_headers(cards)
-            self.root.clipboard_clear()
-            self.root.clipboard_append(output)
-            self.status_label.config(text=f"Copied {len(cards)} cards to clipboard!")
-            messagebox.showinfo("Success", f"Copied {len(cards)} cards to clipboard")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+        def select_output(self):
+            path = filedialog.asksaveasfilename(
+                title="Select Output File",
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
+            )
+            if path:
+                self.output_path = path
+                self.output_label.config(text=path)
 
-if __name__ == "__main__":
+        def convert(self):
+            if not self.input_path:
+                messagebox.showerror("Error", "Please select an input file")
+                return
+            if not self.output_path:
+                messagebox.showerror("Error", "Please select an output file")
+                return
+
+            try:
+                cards = parse_cards(self.input_path)
+                output = format_cards_with_headers(cards)
+                with open(self.output_path, "w", encoding="utf-8") as f:
+                    f.write(output)
+                    f.write("\n")
+                self.status_label.config(text=f"Converted {len(cards)} cards!")
+                messagebox.showinfo("Success", f"Converted {len(cards)} cards to {self.output_path}")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+
+        def copy_to_clipboard(self):
+            if not self.input_path:
+                messagebox.showerror("Error", "Please select an input file")
+                return
+
+            try:
+                cards = parse_cards(self.input_path)
+                output = format_cards_with_headers(cards)
+                self.root.clipboard_clear()
+                self.root.clipboard_append(output)
+                self.status_label.config(text=f"Copied {len(cards)} cards to clipboard!")
+                messagebox.showinfo("Success", f"Copied {len(cards)} cards to clipboard")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+
     try:
         root = tk.Tk()
         app = App(root)
         root.mainloop()
     except Exception as e:
         messagebox.showerror("Startup Error", str(e))
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        run_cli()
+    else:
+        run_gui()
